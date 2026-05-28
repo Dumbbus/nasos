@@ -1,0 +1,51 @@
+// L298N Motor B control pins (driving both motors together)
+const int enB = 9;   // PWM speed control (must be PWM pin)
+const int in3 = 8;   // Direction input 3
+const int in4 = 7;   // Direction input 4
+
+void setup() {
+  // Initialize motor control pins
+  pinMode(enB, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+
+  // Ensure motors are stopped at startup
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+
+  // Start Serial communication for monitoring
+  Serial.begin(9600);
+  Serial.println(F("L298N Motor Test Starting..."));
+  Serial.println(F("Both motors on OUT3/OUT4"));
+  delay(1000);
+}
+
+void loop() {
+  // --- FORWARD at 70% speed ---
+  Serial.print(F("Direction: FORWARD | Speed: "));
+  Serial.println(70);  // percentage
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+  analogWrite(enB, 180);  // 180/255 ≈ 70%
+  delay(2000);
+
+  // --- STOP (coast) ---
+  Serial.println(F("Direction: STOP (coasting)"));
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+  delay(1000);
+
+  // --- REVERSE at 100% speed ---
+  Serial.print(F("Direction: REVERSE | Speed: "));
+  Serial.println(100);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+  analogWrite(enB, 255);  // full speed
+  delay(2000);
+
+  // --- BRAKE (fast stop) ---
+  Serial.println(F("Direction: BRAKE (fast stop)"));
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, HIGH);
+  delay(1000);
+}

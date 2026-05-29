@@ -4,7 +4,7 @@ import paho.mqtt.client as mqtt
 import time
 
 # ---------- MQTT CONFIGURATION ----------
-MQTT_BROKER = "192.168.1.100"   # ← IP address of PC B (the one with the broker)
+MQTT_BROKER = "192.168.1.100"   # ← IP address of PC B (Mosquitto broker)
 MQTT_PORT = 1883
 COMMAND_TOPIC = "motor/command"
 SENSOR_TOPIC = "sensor/data"
@@ -17,8 +17,8 @@ class MotorController:
         self.root.geometry("380x560")
         self.root.resizable(False, False)
 
-        # MQTT client
-        self.client = mqtt.Client()
+        # MQTT client – use new API version 2 to avoid deprecation
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.client.on_connect = self.on_mqtt_connect
         self.client.on_message = self.on_mqtt_message
         self.client.connect_async(MQTT_BROKER, MQTT_PORT, 60)
@@ -77,14 +77,13 @@ class MotorController:
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-    # ---------- MQTT Callbacks ----------
-    def on_mqtt_connect(self, client, userdata, flags, rc):
-        if rc == 0:
+    # ---------- MQTT Callbacks (new API) ----------
+    def on_mqtt_connect(self, client, userdata, flags, reason_code, properties):
+        if reason_code == 0:
             self.status_var.set("Connected to MQTT broker")
-            # Subscribe to sensor data topic
             client.subscribe(SENSOR_TOPIC)
         else:
-            self.status_var.set(f"MQTT connection failed (code {rc})")
+            self.status_var.set(f"MQTT connection failed (code {reason_code})")
 
     def on_mqtt_message(self, client, userdata, msg):
         # Expected format: "TEMP:23.45:PRESSURE:101325"
